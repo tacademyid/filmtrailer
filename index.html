@@ -289,6 +289,7 @@
             <a href="#" id="aboutLink" class="inline-menu-item">Tentang</a>
             <a href="#" id="tutorialLink" class="inline-menu-item">Tutorial</a>
             <a href="#" id="supportLink" class="inline-menu-item">Dukungan</a>
+            <a href="#" id="settingLink" class="inline-menu-item">Pengaturan</a>
         </div>
 
         <!-- Main Generator Form Section -->
@@ -776,6 +777,21 @@
 
             <button id="backToGeneratorBtnSupport" class="btn-primary mt-8">Kembali ke Generator</button>
         </div>
+
+        <!-- Setting Section -->
+        <div id="settingSection" class="hidden">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Pengaturan API Key</h2>
+            <p class="text-gray-700 mb-4">Aplikasi ini membutuhkan API Key Google Gemini Anda untuk dapat menghasilkan prompt. API Key Anda akan disimpan secara lokal di browser ini dan tidak akan dikirim ke server kami.</p>
+
+            <div class="input-group mb-6">
+                <label for="geminiApiKeyInput">Masukkan Gemini API Key Anda:</label>
+                <input type="text" id="geminiApiKeyInput" placeholder="Contoh: AIzaSyC_xxxxxxxxxxxxxxxxxxxxxxxxxx" class="w-full p-3 border rounded-lg">
+                <small class="text-gray-500 mt-1 block">Anda bisa mendapatkan API Key dari <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-blue-600 hover:underline">Google AI Studio</a>.</small>
+            </div>
+
+            <button id="saveApiKeyBtn" class="btn-primary mb-4">Simpan API Key</button>
+            <button id="backToGeneratorBtnSetting" class="btn-primary">Kembali ke Generator</button>
+        </div>
     </div>
 
     <div id="messageBox" class="message-box"></div>
@@ -793,7 +809,8 @@
             const generatorSection = document.getElementById('generatorSection');
             const tutorialSection = document.getElementById('tutorialSection');
             const aboutSection = document.getElementById('aboutSection');
-            const supportSection = document.getElementById('supportSection'); // Get the new support section
+            const supportSection = document.getElementById('supportSection');
+            const settingSection = document.getElementById('settingSection'); // New setting section element
             const generateBtn = document.getElementById('generateBtn');
             const outputSection = document.getElementById('outputSection');
             const loadingIndicator = document.getElementById('loadingIndicator');
@@ -803,9 +820,15 @@
             const aboutLink = document.getElementById('aboutLink');
             const tutorialLink = document.getElementById('tutorialLink');
             const supportLink = document.getElementById('supportLink');
+            const settingLink = document.getElementById('settingLink'); // New setting menu link
             const backToGeneratorBtnTutorial = document.getElementById('backToGeneratorBtnTutorial');
             const backToGeneratorBtnAbout = document.getElementById('backToGeneratorBtnAbout');
-            const backToGeneratorBtnSupport = document.getElementById('backToGeneratorBtnSupport'); // New button for support section
+            const backToGeneratorBtnSupport = document.getElementById('backToGeneratorBtnSupport');
+            const backToGeneratorBtnSetting = document.getElementById('backToGeneratorBtnSetting'); // New back button for setting section
+
+            // Setting section elements
+            const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
+            const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
 
             // Scroll buttons
             const scrollToTopBtn = document.getElementById('scrollToTopBtn');
@@ -857,6 +880,12 @@
             renderOptions('toneMoodOptions', 'toneMood', toneMoodOptions);
             renderOptions('visualStyleOptions', 'visualStyle', visualStyleOptions);
             renderOptions('spokenLanguageOptions', 'spokenLanguage', spokenLanguageOptions); // Render for spoken language
+
+            // Load API Key from localStorage on startup
+            let storedApiKey = localStorage.getItem('geminiApiKey');
+            if (storedApiKey) {
+                geminiApiKeyInput.value = storedApiKey;
+            }
 
             // Event listener for generate button
             generateBtn.addEventListener('click', generateTrailerPrompts);
@@ -916,6 +945,14 @@
 
 
             async function callGeminiAPI(promptContent, schema) {
+                // Retrieve API Key from localStorage
+                const apiKey = localStorage.getItem('geminiApiKey');
+
+                if (!apiKey) {
+                    showMessage('API Key belum diatur. Silakan ke menu "Pengaturan" untuk memasukkan API Key Anda.', true);
+                    return null; // Prevent API call if API Key is missing
+                }
+
                 let chatHistory = [];
                 chatHistory.push({ role: "user", parts: [{ text: promptContent }] });
                 const payload = {
@@ -925,7 +962,7 @@
                         responseSchema: schema
                     }
                 };
-                const apiKey = ""; // If you want to use models other than gemini-2.0-flash or imagen-3.0-generate-002, provide an API key here. Otherwise, leave this as-is.
+                // Use the API Key from localStorage
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
                 try {
@@ -943,17 +980,24 @@
                         return JSON.parse(json);
                     } else {
                         console.error("Unexpected API response structure:", result);
-                        showMessage("Gagal mendapatkan respons dari AI. Coba lagi.", true);
+                        showMessage("Gagal mendapatkan respons dari AI. Respon API tidak terduga.", true);
                         return null;
                     }
                 } catch (error) {
                     console.error("Error calling Gemini API:", error);
-                    showMessage("Terjadi kesalahan saat menghubungi AI. Periksa koneksi Anda.", true);
+                    showMessage("Terjadi kesalahan saat menghubungi AI. Periksa koneksi internet Anda atau pastikan API Key Anda valid.", true);
                     return null;
                 }
             }
 
             async function generateTrailerPrompts() {
+                // Ensure API Key is present before attempting to generate
+                if (!localStorage.getItem('geminiApiKey')) {
+                    showMessage('API Key belum diatur. Silakan ke menu "Pengaturan" untuk memasukkan API Key Anda.', true);
+                    showSection(settingSection); // Redirect to settings
+                    return;
+                }
+
                 outputSection.classList.remove('hidden');
                 loadingIndicator.classList.remove('hidden');
                 document.getElementById('scenesContainer').innerHTML = ''; // Clear previous outputs
@@ -965,7 +1009,7 @@
                 const toneMood = document.getElementById('toneMood').value || 'Epic, Intense, Heroic';
                 const lokasiSetting = document.getElementById('lokasiSetting').value || 'Hutan kuno, pegunungan terjal, reruntuhan kuno';
                 const visualStyle = document.getElementById('visualStyle').value || 'Ultra-Cinematic, Dramatic Lighting';
-                const spokenLanguage = document.getElementById('spokenLanguage').value || 'Indonesian'; // Get value from the new input
+                const spokenLanguage = document.getElementById('spokenLanguage').value || 'Indonesian';
                 const musikSoundtrackMood = document.getElementById('musikSoundtrackMood').value || 'Orkestra dramatis, melodi yang mengharukan';
                 const narasiVoiceOverUtama = document.getElementById('narasiVoiceOverUtama').value || 'Di dunia yang dilupakan, satu jiwa akan bangkit.';
                 const petunjukTambahan = document.getElementById('petunjukTambahan').value || 'Fokus pada konflik internal karakter, tunjukkan sekilas adegan aksi besar.';
@@ -1052,8 +1096,6 @@
                     const fullPrompt = `Film Title: ${judulFilm}, Genre: ${genre}, Character: ${deskripsiKarakterUtama}, Tone/Mood: ${toneMood}, Location: ${lokasiSetting}, Visual Style: ${visualStyle}, Spoken Language: ${spokenLanguage}, Music Mood: ${musikSoundtrackMood}, Voice Over: ${narasiVoiceOverUtama}, Additional Notes: ${petunjukTambahan}.
 
                     Based on the above film details, generate a detailed Veo 3 compatible video prompt, relevant dialogue, and a suitable backsound description for the following trailer scene. Provide both Indonesian and English versions.
-
-                    Scene Description: ${scene.basePrompt}
 
                     Ensure the output is in JSON format as follows:
                     {
@@ -1151,12 +1193,13 @@ Backsound: ${result.backsound_en}</pre>
                 generatorSection.classList.add('hidden');
                 tutorialSection.classList.add('hidden');
                 aboutSection.classList.add('hidden');
-                supportSection.classList.add('hidden'); // Hide support section too
+                supportSection.classList.add('hidden');
+                settingSection.classList.add('hidden'); // Hide setting section
                 sectionToShow.classList.remove('hidden');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
 
-            // Handle About, Tutorial, Support links
+            // Handle About, Tutorial, Support, Setting links
             aboutLink.addEventListener('click', (e) => {
                 e.preventDefault();
                 showSection(aboutSection);
@@ -1169,7 +1212,12 @@ Backsound: ${result.backsound_en}</pre>
 
             supportLink.addEventListener('click', (e) => {
                 e.preventDefault();
-                showSection(supportSection); // Show support section
+                showSection(supportSection);
+            });
+
+            settingLink.addEventListener('click', (e) => { // Event listener for Setting link
+                e.preventDefault();
+                showSection(settingSection);
             });
 
             // Back to Generator buttons
@@ -1183,9 +1231,26 @@ Backsound: ${result.backsound_en}</pre>
                 showSection(generatorSection);
             });
 
-            backToGeneratorBtnSupport.addEventListener('click', (e) => { // New back button for support
+            backToGeneratorBtnSupport.addEventListener('click', (e) => {
                 e.preventDefault();
                 showSection(generatorSection);
+            });
+
+            backToGeneratorBtnSetting.addEventListener('click', (e) => { // Back button for Setting
+                e.preventDefault();
+                showSection(generatorSection);
+            });
+
+            // Save API Key button logic
+            saveApiKeyBtn.addEventListener('click', () => {
+                const newApiKey = geminiApiKeyInput.value.trim();
+                if (newApiKey) {
+                    localStorage.setItem('geminiApiKey', newApiKey);
+                    storedApiKey = newApiKey; // Update the global variable
+                    showMessage('API Key berhasil disimpan!', false);
+                } else {
+                    showMessage('API Key tidak boleh kosong!', true);
+                }
             });
         });
     </script>
