@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompt Generator Film Trailer AI</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top for better scrolling */
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            position: relative; /* Needed for fixed positioning of scroll buttons */
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 32px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        .input-group label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            display: flex; /* Use flexbox for label and icon alignment */
+            align-items: center; /* Vertically center icon and text */
+            gap: 8px; /* Space between icon and text */
+        }
+        .input-group label svg {
+            width: 20px; /* Icon size */
+            height: 20px; /* Icon size */
+            stroke: #333; /* Black/white color for icons */
+            stroke-width: 2;
+            fill: none;
+        }
+        .input-group input,
+        .input-group textarea,
+        .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            color: #4a5568;
+            transition: border-color 0.2s;
+            background-color: #ffffff; /* Ensure select has white background */
+        }
+        .input-group input:focus,
+        .input-group textarea:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #4299e1;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
+        }
+        .btn-primary {
+            background-color: #4299e1;
+            color: #ffffff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            text-align: center;
+            width: 100%;
+        }
+        .btn-primary:hover {
+            background-color: #3182ce;
+            transform: translateY(-1px);
+        }
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        .output-section {
+            background-color: #f7fafc;
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px dashed #cbd5e0;
+        }
+        .output-section pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #2d3748;
+        }
+        .copy-button {
+            background-color: #63b3ed;
+            color: #ffffff;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 16px;
+            display: inline-block;
+        }
+        .copy-button:hover {
+            background-color: #4299e1;
+        }
+        .message-box {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #4CAF50; /* Green */
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .message-box.show {
+            opacity: 1;
+        }
+        .option-tag {
+            padding: 6px 10px;
+            background-color: #e0f2fe; /* Light blue */
+            color: #0c4a6e; /* Darker blue text */
+            border-radius: 9999px; /* Full rounded corners */
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            font-size: 0.875rem; /* text-sm */
+            white-space: nowrap; /* Prevent wrapping */
+        }
+        .option-tag:hover {
+            background-color: #bae6fd; /* Lighter blue on hover */
+            transform: translateY(-1px);
+        }
+        .clear-button {
+            background: none;
+            border: none;
+            color: #6b7280; /* gray-500 */
+            cursor: pointer;
+            font-size: 0.75rem; /* text-xs */
+            margin-top: 4px;
+            padding: 0;
+            text-decoration: underline;
+            transition: color 0.2s ease-in-out;
+        }
+        .clear-button:hover {
+            color: #4b5563; /* gray-700 */
+        }
+
+        /* Styles for new output structure */
+        .scene-block {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .lang-tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .tab-button {
+            padding: 10px 18px;
+            border: none;
+            background-color: #edf2f7; /* Light gray */
+            cursor: pointer;
+            font-weight: 600;
+            color: #4a5568;
+            border-radius: 8px 8px 0 0;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .tab-button.active {
+            background-color: #ffffff;
+            color: #4299e1;
+            border-bottom: 2px solid #4299e1;
+            margin-bottom: -1px; /* Overlap border */
+        }
+        .tab-button:not(.active):hover {
+            background-color: #e2e8f0;
+        }
+        .lang-content {
+            border: 1px solid #e2e8f0;
+            border-top: none;
+            padding: 16px;
+            border-radius: 0 0 8px 8px;
+            background-color: #ffffff;
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #4299e1;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Adjusted spacing for title and description */
+        h1.title-adjusted {
+            margin-bottom: 4px; /* Reduced margin */
+        }
+        p.description-adjusted {
+            margin-top: 0; /* Removed top margin */
+            margin-bottom: 16px; /* Adjusted bottom margin to make space for menu */
+        }
+
+        /* Inline Menu Styles */
+        .inline-menu {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 24px; /* Space below menu */
+        }
+        .inline-menu-item {
+            color: #4a5568; /* Darker gray text */
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: background-color 0.2s, color 0.2s;
+            font-weight: 500;
+        }
+        .inline-menu-item:hover {
+            background-color: #e2e8f0; /* Light gray background on hover */
+            color: #2d3748; /* Darker text on hover */
+        }
+
+        /* Scroll Buttons */
+        .scroll-button {
+            position: fixed;
+            right: 20px;
+            background-color: #4299e1;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.2s, opacity 0.3s;
+            z-index: 900;
+            opacity: 0; /* Hidden by default */
+        }
+        .scroll-button:hover {
+            background-color: #3182ce;
+        }
+        .scroll-button.show {
+            opacity: 1;
+        }
+        #scrollToTopBtn {
+            bottom: 80px; /* Above scroll to bottom */
+        }
+        #scrollToBottomBtn {
+            bottom: 20px;
+        }
+        .scroll-button svg {
+            width: 24px;
+            height: 24px;
+            stroke: white;
+            stroke-width: 2;
+            fill: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold text-center text-gray-800 title-adjusted">Prompt Generator Film Trailer AI</h1>
+        <p class="text-center text-gray-600 text-lg description-adjusted">Buat Film Trailer Berkelas Hollywood Dengan AI</p>
+
+        <!-- Inline Menu -->
+        <div class="inline-menu">
+            <a href="#" id="aboutLink" class="inline-menu-item">Tentang</a>
+            <a href="#" id="tutorialLink" class="inline-menu-item">Tutorial</a>
+            <a href="#" id="supportLink" class="inline-menu-item">Dukungan</a>
+        </div>
+
+        <!-- Main Generator Form Section -->
+        <div id="generatorSection">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="input-group">
+                    <label for="judulFilm">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-film"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line><line x1="17" y1="17" x2="22" y2="17"></line></svg>
+                        Judul Film:
+                    </label>
+                    <input type="text" id="judulFilm" placeholder="Contoh: Petualangan di Negeri Ajaib">
+                </div>
+                <div class="input-group">
+                    <label for="genre">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                        Genre:
+                    </label>
+                    <select id="genre" class="form-select">
+                        <option value="">Pilih Genre</option>
+                        <option value="Action">Action</option>
+                        <option value="Adventure">Adventure</option>
+                        <option value="Sci-Fi">Sci-Fi</option>
+                        <option value="Fantasy">Fantasy</option>
+                        <option value="Horror">Horror</option>
+                        <option value="Thriller">Thriller</option>
+                        <option value="Drama">Drama</option>
+                        <option value="Romance">Romance</option>
+                        <option value="Comedy">Comedy</option>
+                        <option value="Animation / Family">Animation / Family</option>
+                        <option value="Documentary">Documentary</option>
+                        <option value="Musical">Musical</option>
+                        <option value="Mystery">Mystery</option>
+                        <option value="Historical / War">Historical / War</option>
+                        <option value="Biographical (Biopic)">Biographical (Biopic)</option>
+                        <option value="Sci-Fi Action">Sci-Fi Action</option>
+                        <option value="Fantasy Adventure">Fantasy Adventure</option>
+                        <option value="Horror Thriller">Horror Thriller</option>
+                        <option value="Romantic Comedy">Romantic Comedy</option>
+                        <option value="Superhero">Superhero</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="durasiTrailer">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clock"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        Durasi Trailer (detik):
+                    </label>
+                    <input type="number" id="durasiTrailer" value="60" min="30" max="180">
+                </div>
+                <div class="input-group">
+                    <label for="deskripsiKarakterUtama">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        Deskripsi Karakter Utama:
+                    </label>
+                    <textarea id="deskripsiKarakterUtama" rows="3" placeholder="Contoh: Seorang pahlawan muda yang ragu-ragu menemukan kekuatan batinnya untuk menghadapi takdir."></textarea>
+                </div>
+                <div class="input-group">
+                    <label for="toneMood">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-feather"><path d="M20.24 12.24l-7.12 7.12-9.9-9.9 7.12-7.12 9.9 9.9z"></path><path d="M18.24 14.24l-1.42 1.42-4.95-4.95 1.42-1.42 4.95 4.95z"></path><path d="M16.24 16.24l-1.42 1.42-2.83-2.83 1.42-1.42 2.83 2.83z"></path></svg>
+                        Tone & Mood:
+                    </label>
+                    <input type="text" id="toneMood" readonly placeholder="Pilih Tone & Mood dari daftar di bawah">
+                    <div id="toneMoodOptions" class="flex flex-wrap gap-2 mt-2">
+                        <!-- Options will be rendered here by JavaScript -->
+                    </div>
+                    <button type="button" class="clear-button" data-target="toneMood">Bersihkan Pilihan</button>
+                </div>
+                <div class="input-group">
+                    <label for="lokasiSetting">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-map-pin"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"></path><circle cx="12" cy="9" r="3"></circle></svg>
+                        Lokasi Setting:
+                    </label>
+                    <input type="text" id="lokasiSetting" placeholder="Contoh: Hutan kuno, kota futuristik, luar angkasa">
+                </div>
+                <div class="input-group">
+                    <label for="visualStyle">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-camera"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                        Visual Style:
+                    </label>
+                    <input type="text" id="visualStyle" readonly placeholder="Pilih Visual Style dari daftar di bawah">
+                    <div id="visualStyleOptions" class="flex flex-wrap gap-2 mt-2">
+                        <!-- Options will be rendered here by JavaScript -->
+                    </div>
+                    <button type="button" class="clear-button" data-target="visualStyle">Bersihkan Pilihan</button>
+                </div>
+                <div class="input-group">
+                    <label for="spokenLanguage">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-message-circle"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-4.3A8.38 8.38 0 0 1 2 11.5a8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                        Spoken Language:
+                    </label>
+                    <input type="text" id="spokenLanguage" readonly placeholder="Pilih Bahasa dari daftar di bawah">
+                    <div id="spokenLanguageOptions" class="flex flex-wrap gap-2 mt-2">
+                        <!-- Options will be rendered here by JavaScript -->
+                    </div>
+                    <button type="button" class="clear-button" data-target="spokenLanguage">Bersihkan Pilihan</button>
+                </div>
+                <div class="input-group">
+                    <label for="musikSoundtrackMood">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-music"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+                        Musik / Soundtrack Mood:
+                    </label>
+                    <input type="text" id="musikSoundtrackMood" placeholder="Contoh: Orkestra dramatis, synthwave misterius, melodi yang mengharukan">
+                </div>
+                <div class="input-group">
+                    <label for="narasiVoiceOverUtama">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mic"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                        Narasi Voice Over Utama:
+                    </label>
+                    <textarea id="narasiVoiceOverUtama" rows="3" placeholder="Contoh: 'Di dunia yang dilupakan, satu jiwa akan bangkit.'"></textarea>
+                </div>
+                <div class="input-group md:col-span-2">
+                    <label for="petunjukTambahan">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-info"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                        Petunjuk Tambahan:
+                    </label>
+                    <textarea id="petunjukTambahan" rows="3" placeholder="Contoh: Fokus pada konflik internal karakter, tunjukkan sekilas adegan aksi besar."></textarea>
+                </div>
+            </div>
+
+            <button id="generateBtn" class="btn-primary">Hasilkan Prompt</button>
+
+            <div id="outputSection" class="output-section hidden">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">Prompt Trailer Anda:</h2>
+                <div id="loadingIndicator" class="text-center text-blue-600 hidden">
+                    <div class="spinner"></div>
+                    <p>Membuat prompt trailer...</p>
+                </div>
+
+                <!-- Container for all scenes -->
+                <div id="scenesContainer">
+                    <!-- Scene 1 -->
+                    <div class="scene-block">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Adegan 1: Video Opening + Subtitle (5 detik)</h3>
+                        <div class="lang-tabs flex mb-3">
+                            <button class="tab-button active" data-lang="id" data-scene="1">Indonesia</button>
+                            <button class="tab-button" data-lang="en" data-scene="1">English</button>
+                        </div>
+                        <div class="lang-content id-content scene-1-id">
+                            <pre class="prompt-text-id text-sm"></pre>
+                            <button class="copy-button copy-id" data-scene="1">Salin Prompt Indonesia</button>
+                        </div>
+                        <div class="lang-content en-content scene-1-en hidden">
+                            <pre class="prompt-text-en text-sm"></pre>
+                            <button class="copy-button copy-en" data-scene="1">Salin Prompt English</button>
+                        </div>
+                    </div>
+
+                    <!-- Scene 2 -->
+                    <div class="scene-block">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Adegan 2: (8 detik)</h3>
+                        <div class="lang-tabs flex mb-3">
+                            <button class="tab-button active" data-lang="id" data-scene="2">Indonesia</button>
+                            <button class="tab-button" data-lang="en" data-scene="2">English</button>
+                        </div>
+                        <div class="lang-content id-content scene-2-id">
+                            <pre class="prompt-text-id text-sm"></pre>
+                            <button class="copy-button copy-id" data-scene="2">Salin Prompt Indonesia</button>
+                        </div>
+                        <div class="lang-content en-content scene-2-en hidden">
+                            <pre class="prompt-text-en text-sm"></pre>
+                            <button class="copy-button copy-en" data-scene="2">Salin Prompt English</button>
+                        </div>
+                    </div>
+
+                    <!-- Scene 3 -->
+                    <div class="scene-block">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Adegan 3: (8 detik)</h3>
+                        <div class="lang-tabs flex mb-3">
+                            <button class="tab-button active" data-lang="id" data-scene="3">Indonesia</button>
+                            <button class="tab-button" data-lang="en" data-scene="3">English</button>
+                        </div>
+                        <div class="lang-content id-content scene-3-id">
+                            <pre class="prompt-text-id text-sm"></pre>
+                            <button class="copy-button copy-id" data-scene="3">Salin Prompt Indonesia</button>
+                        </div>
+                        <div class="lang-content en-content scene-3-en hidden">
+                            <pre class="prompt-text-en text-sm"></pre>
+                            <button class="copy-button copy-en" data-scene="3">Salin Prompt English</button>
+                        </div>
+                    </div>
+
+                    <!-- Scene 4 -->
+                    <div class="scene-block">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Adegan 4: (8 detik)</h3>
+                        <div class="lang-tabs flex mb-3">
+                            <button class="tab-button active" data-lang="id" data-scene="4">Indonesia</button>
+                            <button class="tab-button" data-lang="en" data-scene="4">English</button>
+                        </div>
+                        <div class="lang-content id-content scene-4-id">
+                            <pre class="prompt-text-id text-sm"></pre>
+                            <button class="copy-button copy-id" data-scene="4">Salin Prompt Indonesia</button>
+                        </div>
+                        <div class="lang-content en-content scene-4-en hidden">
+                            <pre class="prompt-text-en text-sm"></pre>
+                            <button class="copy-button copy-en" data-scene="4">Salin Prompt English</button>
+                        </div>
+                    </div>
+
+                    <!-- Scene 5 -->
+                    <div class="scene-block">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Adegan 5: (8 detik)</h3>
+                        <div class="lang-tabs flex mb-3">
+                            <button class="tab-button active" data-lang="id" data-scene="5">Indonesia</button>
+                            <button class="tab-button" data-lang="en" data-scene="5">English</button>
+                        </div>
+                        <div class="lang-content id-content scene-5-id">
+                            <pre class="prompt-text-id text-sm"></pre>
+                            <button class="copy-button copy-id" data-scene="5">Salin Prompt Indonesia</button>
+                        </div>
+                        <div class="lang-content en-content scene-5-en hidden">
+                            <pre class="prompt-text-en text-sm"></pre>
+                            <button class="copy-button copy-en" data-scene="5">Salin Prompt English</button>
+                        </div>
+                    </div>
+
+                    <!-- Scene 6 -->
+                    <div class="scene-block">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Adegan 6: Video Closing Credit</h3>
+                        <div class="lang-tabs flex mb-3">
+                            <button class="tab-button active" data-lang="id" data-scene="6">Indonesia</button>
+                            <button class="tab-button" data-lang="en" data-scene="6">English</button>
+                        </div>
+                        <div class="lang-content id-content scene-6-id">
+                            <pre class="prompt-text-id text-sm"></pre>
+                            <button class="copy-button copy-id" data-scene="6">Salin Prompt Indonesia</button>
+                        </div>
+                        <div class="lang-content en-content scene-6-en hidden">
+                            <pre class="prompt-text-en text-sm"></pre>
+                            <button class="copy-button copy-en" data-scene="6">Salin Prompt English</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- About Section -->
+        <div id="aboutSection" class="hidden">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Tentang Prompt Generator Film Trailer AI</h2>
+            <p class="text-gray-700 mb-4">Prompt Generator Film Trailer AI adalah aplikasi inovatif yang dikembangkan oleh TAcademy ID, dirancang khusus untuk membantu kreator menghasilkan prompt berkualitas tinggi untuk pembuatan trailer film dengan bantuan AI.</p>
+            <p class="text-gray-700 mb-6">Aplikasi ini hadir untuk memudahkan pengguna dalam mengeksplorasi ide kreatif, membangun alur cerita visual, dan merancang trailer film AI yang sinematik, cepat, dan efektif—tanpa perlu keahlian teknis tingkat tinggi.</p>
+
+            <h3 class="text-xl font-semibold text-gray-800 mt-6 mb-3">Etika & Kepatuhan Hukum:</h3>
+            <p class="text-gray-700 mb-4">Kami sangat menjunjung tinggi nilai orisinalitas dan legalitas dalam dunia digital. Oleh karena itu, kami menegaskan pentingnya:</p>
+            <p class="text-red-600 font-semibold mb-4">Jangan menggunakan karya, aset, karakter, musik, footage, atau elemen milik orang lain tanpa izin.</p>
+
+            <p class="text-gray-700 mb-2">Menggunakan produk milik pihak lain tanpa seizin pencipta atau pemegang haknya merupakan pelanggaran hukum, termasuk namun tidak terbatas pada:</p>
+            <ul class="list-disc list-inside text-gray-700 ml-4 mb-4">
+                <li>Undang-Undang No. 28 Tahun 2014 tentang Hak Cipta</li>
+                <li>Sanksi pidana hingga 10 tahun penjara dan/atau denda maksimal Rp4 miliar (Pasal 113)</li>
+                <li>Risiko pemblokiran akun/platform, gugatan hukum, dan kerugian reputasi pribadi/profesional</li>
+            </ul>
+
+            <p class="text-gray-700 mb-6">Kami tidak bertanggung jawab atas penyalahgunaan aplikasi ini oleh pengguna. Semua hasil kreasi yang dihasilkan sepenuhnya menjadi tanggung jawab pengguna. Pastikan Anda hanya menggunakan konten yang legal, bebas lisensi, atau milik Anda sendiri.</p>
+
+            <h3 class="text-xl font-semibold text-gray-800 mt-6 mb-3">Komitmen TAcademy ID</h3>
+            <ul class="list-disc list-inside text-gray-700 ml-4 mb-4">
+                <li>Mengedukasi pengguna tentang pentingnya etika digital dan hak kekayaan intelektual</li>
+                <li>Mengembangkan fitur-fitur yang mendukung kreasi orisinal, aman, dan bertanggung jawab</li>
+                <li>Menjadi bagian dari ekosistem kreatif AI yang positif, legal, dan inspiratif</li>
+            </ul>
+
+            <p class="text-blue-600 font-bold text-lg mt-6">🧠 Prompt cerdas, karya berkualitas.</p>
+            <p class="text-red-600 font-bold text-lg mb-6">🚫 Tanpa plagiarisme, tanpa pelanggaran.</p>
+
+            <p class="text-gray-700 mb-4">Mari berkarya dengan bijak dan bermartabat.</p>
+            <p class="text-gray-700 mb-6">Email Support : <a href="mailto:cademyta@gmail.com" class="text-blue-600 hover:underline">cademyta@gmail.com</a></p>
+
+            <button id="backToGeneratorBtnAbout" class="btn-primary mt-8">Kembali ke Generator</button>
+        </div>
+
+
+        <!-- Tutorial Section -->
+        <div id="tutorialSection" class="hidden">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Tutorial Penggunaan Prompt Generator Film Trailer AI</h2>
+            <p class="text-gray-700 mb-6">Selamat datang di panduan penggunaan Prompt Generator Film Trailer AI! Tutorial ini akan membantu Anda memahami setiap bagian dari aplikasi, mulai dari mengisi formulir input hingga menghasilkan prompt trailer film berkelas Hollywood dengan bantuan AI.</p>
+            <p class="text-gray-700 mb-6">Mari kita mulai!</p>
+
+            <h3 class="text-xl font-semibold text-gray-800 mt-6 mb-3">Bagian 1: Mengisi Formulir Input</h3>
+            <p class="text-gray-700 mb-4">Formulir input adalah tempat Anda memberikan semua detail yang diperlukan AI untuk menghasilkan prompt trailer yang paling sesuai dengan visi Anda.</p>
+
+            <div class="mb-4">
+                <h4 class="text-lg font-semibold text-gray-800 mb-2">1. Judul Film:</h4>
+                <ul class="list-disc list-inside text-gray-700 ml-4">
+                    <li><strong>Tujuan:</strong> Masukkan judul resmi film Anda.</li>
+                    <li><strong>Cara Mengisi:</strong> Ketikkan judul film Anda di kolom teks yang tersedia.</li>
+                    <li><strong>Contoh:</strong> <code class="bg-gray-100 p-1 rounded">Petualangan di Negeri Ajaib</code></li>
+                </ul>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-lg font-semibold text-gray-800 mb-2">2. Genre:</h4>
+                <ul class="list-disc list-inside text-gray-700 ml-4">
+                    <li><strong>Tujuan:</strong> Pilih genre utama film Anda.</li>
+                    <li><strong>Cara Mengisi:</strong> Klik pada menu dropdown dan pilih salah satu genre yang paling sesuai dengan film Anda dari daftar yang tersedia. Anda hanya bisa memilih satu genre di sini.</li>
+                    <li><strong>Contoh:</strong> <code class="bg-gray-100 p-1 rounded">Fantasi</code></li>
+                </ul>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-lg font-semibold text-gray-800 mb-2">3. Durasi Trailer (detik):</h4>
+                <ul class="list-disc list-inside text-gray-700 ml-4">
+                    <li><strong>Tujuan:</strong> Tentukan berapa lama durasi trailer yang Anda inginkan dalam hitungan detik.</li>
+                    <li><strong>Cara Mengisi:</strong> Masukkan angka (dalam detik) di kolom input. Durasi umum untuk trailer adalah 30 hingga 180 detik.</li>
+                    <li><strong>Contoh:</strong> <code class="bg-gray-100 p-1 rounded">60</code></li>
+                </ul>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-lg font-semibold text-gray-800 mb-2">4. Deskripsi Karakter Utama:</h4>
+                <ul class="list-disc list-inside text-gray-700 ml-4">
+                    <li><strong>Tujuan:</strong> Berikan deskripsi singkat tentang karakter utama film Anda. Ini akan membantu AI memahami kepribadian dan peran mereka dalam cerita.</li>
+                    <li><strong>Cara Mengisi:</strong> Ketikkan deskripsi di area teks.</li>
+                    <li><strong>Contoh:</strong> <code class="bg-gray-100 p-1 rounded">Seorang pahlawan muda yang ragu-ragu menemukan kekuatan batinnya untuk menghadapi takdir.</code></li>
+                </ul>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-lg font-semibold text-gray-800 mb-2">5. Tone & Mood:</h4>
+                <ul class="list-disc list-inside text-gray-700 ml-4">
+                    <li><strong>Tujuan:</strong> Pilih suasana dan nada keseluruhan yang Anda inginkan untuk trailer. Anda bisa memilih lebih dari satu!</li>
+                    <li><strong>Cara Mengisi:</strong> Di bawah kolom input, Anda akan melihat daftar "tag" yang dapat diklik. Klik pada setiap tag yang sesuai dengan tone & mood film Anda. Pilihan Anda akan muncul di kolom input di atasnya, dipisahkan dengan koma.</li>
+                    <li><strong>Tombol "Bersihkan Pilihan":</strong> Jika Anda ingin menghapus semua pilihan yang sudah ada, klik tombol "Bersihkan Pilihan" di bawah daftar tag.</li>
+                    <li><strong>Contoh:</strong> Klik <code class="bg-gray-100 p-1 rounded">Epic</code>, lalu <code class="bg-gray-100 p-1 rounded">Intense</code>, lalu <code class="bg-gray-100 p-1 rounded">Heroic</code>. Kolom input akan terisi <code class="bg-gray-100 p-1 rounded">Epic, Intense, Heroic</code>.</li>
+                </ul>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-lg font-semibold text-gray-800 mb-2">6. Lokasi Setting:</h4>
+                <ul class="list-disc list-inside text-gray-700 ml-4">
+                    <li><strong>Tujuan:</strong> Jelaskan lokasi atau latar tempat film Anda.</li>
+                    <li><strong>Cara Mengisi:</strong> Ketikkan deskripsi lokasi di kolom teks.</li>
+                    <li><strong>Contoh:</strong> <code class="bg-gray-100 p-1 rounded">Hutan kuno, pegunungan terjal, reruntuhan kuno</code></li>
+                </ul>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-lg font-semibold text-gray-800 mb-2">7. Visual Style:</h4>
+                <ul class="list-disc list-inside text-gray-700 ml-4">
+                    <li><strong>Tujuan:</strong> Pilih gaya visual yang Anda inginkan untuk trailer Anda. Anda bisa memilih lebih dari satu!</li>
+                    <li><strong>Cara Mengisi:</strong> Sama seperti "Tone & Mood", klik pada setiap tag gaya visual yang Anda inginkan dari daftar di bawah kolom input. Pilihan Anda akan muncul di kolom input di atasnya.</li>
+                    <li><strong>Tombol "Bersihkan Pilihan":</strong> Gunakan tombol ini untuk menghapus semua pilihan gaya visual.</li>
+                    <li><strong>Contoh:</strong> Klik <code class="bg-gray-100 p-1 rounded">Ultra-Cinematic</code>, lalu <code class="bg-gray-100 p-1 rounded">Dramatic Lighting</code>. Kolom input akan terisi <code class="bg-gray-100 p-1 rounded">Ultra-Cinematic, Dramatic Lighting</code>.</li>
+                </ul>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-lg font-semibold text-gray-800 mb-2">8. Spoken Language:</h4>
+                <ul class="list-disc list-inside text-gray-700 ml-4">
+                    <li><strong>Tujuan:</strong> Pilih bahasa yang digunakan dalam dialog atau narasi di trailer Anda. Anda bisa memilih lebih dari satu!</li>
+                    <li><strong>Cara Mengisi:</strong> Klik pada setiap tag bahasa yang Anda inginkan dari daftar di bawah kolom input. Pilihan Anda akan muncul di kolom input di atasnya.</li>
+                    <li><strong>Tombol "Bersihkan Pilihan":</strong> Gunakan tombol ini untuk menghapus semua pilihan bahasa.</li>
+                    <li><strong>Contoh:</strong> Klik <code class="bg-gray-100 p-1 rounded">Indonesian</code>, lalu <code class="bg-gray-100 p-1 rounded">English</code>. Kolom input akan terisi <code class="bg-gray-100 p-1 rounded">Indonesian, English</code>.</li>
+                </ul>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-lg font-semibold text-gray-800 mb-2">9. Musik / Soundtrack Mood:</h4>
+                <ul class="list-disc list-inside text-gray-700 ml-4">
+                    <li><strong>Tujuan:</strong> Jelaskan jenis suasana musik atau soundtrack yang Anda inginkan untuk trailer.</li>
+                    <li><strong>Cara Mengisi:</strong> Ketikkan deskripsi mood musik di kolom teks.</li>
+                    <li><strong>Contoh:</strong> <code class="bg-gray-100 p-1 rounded">Orkestra dramatis, melodi yang mengharukan</code></li>
+                </ul>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-lg font-semibold text-gray-800 mb-2">10. Narasi Voice Over Utama:</h4>
+                <ul class="list-disc list-inside text-gray-700 ml-4">
+                    <li><strong>Tujuan:</strong> Masukkan narasi voice over utama yang akan muncul di awal trailer (Adegan 1).</li>
+                    <li><strong>Cara Mengisi:</strong> Ketikkan narasi di area teks.</li>
+                    <li><strong>Contoh:</strong> <code class="bg-gray-100 p-1 rounded">'Di dunia yang dilupakan, satu jiwa akan bangkit.'</code></li>
+                </ul>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-lg font-semibold text-gray-800 mb-2">11. Petunjuk Tambahan:</h4>
+                <ul class="list-disc list-inside text-gray-700 ml-4">
+                    <li><strong>Tujuan:</strong> Berikan instruksi atau catatan tambahan apa pun yang Anda anggap penting untuk AI, yang belum tercakup di kolom lain.</li>
+                    <li><strong>Cara Mengisi:</strong> Ketikkan petunjuk tambahan di area teks.</li>
+                    <li><strong>Contoh:</strong> <code class="bg-gray-100 p-1 rounded">Fokus pada konflik internal karakter, tunjukkan sekilas adegan aksi besar.</code></li>
+                </ul>
+            </div>
+
+            <h3 class="text-xl font-semibold text-gray-800 mt-6 mb-3">Bagian 2: Menghasilkan Prompt</h3>
+            <ul class="list-disc list-inside text-gray-700 ml-4">
+                <li class="mb-2"><strong>1. Klik Tombol "Hasilkan Prompt":</strong>
+                    <ul class="list-circle list-inside ml-4">
+                        <li>Setelah mengklik tombol ini, aplikasi akan mulai memproses input Anda menggunakan kecerdasan buatan.</li>
+                        <li>Anda akan melihat indikator memuat (<span class="font-bold">spinner</span>) dan pesan "Membuat prompt trailer..." yang menunjukkan bahwa AI sedang bekerja.</li>
+                    </ul>
+                </li>
+                <li><strong>2. Melihat Hasil Prompt Trailer:</strong>
+                    <ul class="list-circle list-inside ml-4">
+                        <li>Setelah proses selesai (biasanya dalam beberapa detik), indikator memuat akan hilang dan bagian "Prompt Trailer Anda" akan muncul.</li>
+                        <li>Di sini, Anda akan melihat setiap adegan trailer (Adegan 1 hingga Adegan 6) ditampilkan secara terpisah.</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h3 class="text-xl font-semibold text-gray-800 mt-6 mb-3">Bagian 3: Memahami Output Prompt</h3>
+            <p class="text-gray-700 mb-4">Setiap adegan trailer memiliki struktur output yang kaya informasi:</p>
+
+            <div class="mb-4">
+                <h4 class="text-lg font-semibold text-gray-800 mb-2">1. Judul Adegan:</h4>
+                <ul class="list-disc list-inside text-gray-700 ml-4">
+                    <li>Setiap adegan memiliki judul yang jelas, seperti "Adegan 1: Video Opening + Subtitle (5 detik)".</li>
+                </ul>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-lg font-semibold text-gray-800 mb-2">2. Tab Bahasa (Indonesia / English):</h4>
+                <ul class="list-disc list-inside text-gray-700 ml-4">
+                    <li>Di bawah judul adegan, Anda akan menemukan dua tab: "Indonesia" dan "English".</li>
+                    <li><strong>Klik tab "Indonesia"</strong> untuk melihat prompt video Veo 3, dialog, dan deskripsi backsound dalam Bahasa Indonesia.</li>
+                    <li><strong>Klik tab "English"</strong> untuk melihat konten yang sama dalam Bahasa Inggris.</li>
+                    <li>Tab yang sedang aktif akan memiliki warna yang berbeda.</li>
+                </ul>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-lg font-semibold text-gray-800 mb-2">3. Konten Prompt:</h4>
+                <ul class="list-disc list-inside text-gray-700 ml-4">
+                    <li>Di dalam setiap tab, Anda akan menemukan tiga bagian utama:
+                        <ul class="list-circle list-inside ml-4">
+                            <li><strong>Veo 3 Prompt:</strong> Ini adalah prompt teks yang dirancang khusus untuk digunakan dengan model text-to-video seperti Veo 3, menggambarkan visual adegan secara detail.</li>
+                            <li><strong>Dialog:</strong> Ini adalah dialog yang digenerate oleh AI, relevan dengan adegan tersebut.</li>
+                            <li><strong>Backsound:</strong> Ini adalah deskripsi backsound yang disarankan untuk adegan tersebut.</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-lg font-semibold text-gray-800 mb-2">4. Tombol "Salin Prompt":</h4>
+                <ul class="list-disc list-inside text-gray-700 ml-4">
+                    <li>Di bawah setiap konten prompt (baik Indonesia maupun Inggris), ada tombol "Salin Prompt Indonesia" atau "Salin Prompt English".</li>
+                    <li><strong>Klik tombol ini</strong> untuk menyalin seluruh teks prompt (Veo 3 Prompt, Dialog, dan Backsound) ke clipboard Anda, siap untuk ditempelkan ke aplikasi text-to-video pilihan Anda atau untuk keperluan lain.</li>
+                </ul>
+            </div>
+
+            <h3 class="text-xl font-semibold text-gray-800 mt-6 mb-3">Bagian 4: Tombol Scroll</h3>
+            <ul class="list-disc list-inside text-gray-700 ml-4">
+                <li class="mb-2"><strong>Tombol Panah Atas:</strong> Muncul di sisi kanan bawah layar. Klik ini untuk menggulir halaman kembali ke bagian paling atas.</li>
+                <li><strong>Tombol Panah Bawah:</strong> Muncul di sisi kanan bawah layar, di bawah tombol panah atas. Klik ini untuk menggulir halaman ke bagian paling bawah.</li>
+                <li>Kedua tombol ini akan muncul secara otomatis ketika Anda menggulir halaman ke bawah.</li>
+            </ul>
+
+            <h3 class="text-xl font-semibold text-gray-800 mt-6 mb-3">Bagian 5: Menu Navigasi</h3>
+            <ul class="list-disc list-inside text-gray-700 ml-4">
+                <li class="mb-2"><strong>Tentang:</strong> Klik untuk melihat informasi tentang aplikasi ini.</li>
+                <li class="mb-2"><strong>Tutorial:</strong> Klik untuk kembali ke panduan ini.</li>
+                <li><strong>Dukungan:</strong> Klik untuk mendapatkan informasi dukungan.</li>
+            </ul>
+
+            <p class="text-gray-700 mt-6">Selamat mencoba! Jangan ragu untuk bereksperimen dengan berbagai kombinasi input untuk mendapatkan prompt trailer yang paling sesuai dengan imajinasi Anda.</p>
+
+            <button id="backToGeneratorBtnTutorial" class="btn-primary mt-8">Kembali ke Generator</button>
+        </div>
+
+        <!-- Support Section -->
+        <div id="supportSection" class="hidden">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Dukungan Aplikasi</h2>
+            <p class="text-gray-700 mb-4">Aplikasi Prompt Generator Film Trailer AI ini dibangun dengan memanfaatkan teknologi canggih dari:</p>
+            <ul class="list-disc list-inside text-gray-700 ml-4 mb-6">
+                <li>
+                    <a href="https://gemini.google.com/about" target="_blank" class="text-blue-600 hover:underline font-semibold">Google Gemini</a>: Model AI generatif yang kuat untuk menghasilkan prompt kreatif.
+                </li>
+                <li>
+                    <a href="https://github.com/" target="_blank" class="text-blue-600 hover:underline font-semibold">GitHub</a>: Platform pengembangan terkemuka untuk kolaborasi kode dan version control.
+                </li>
+                <li>
+                    <a href="https://www.netlify.com/" target="_blank" class="text-blue-600 hover:underline font-semibold">Netlify</a>: Platform modern untuk deployment web yang cepat dan mudah.
+                </li>
+            </ul>
+
+            <p class="text-gray-700 mb-4">Jika Anda membutuhkan bantuan lebih lanjut atau memiliki pertanyaan terkait fungsionalitas dasar dari teknologi yang digunakan, Anda dapat merujuk ke sumber daya pengembang masing-masing:</p>
+            <ul class="list-disc list-inside text-gray-700 ml-4 mb-6">
+                <li><a href="https://ai.google.dev/docs" target="_blank" class="text-blue-600 hover:underline">Dokumentasi Google AI (Gemini)</a></li>
+                <li><a href="https://docs.github.com/" target="_blank" class="text-blue-600 hover:underline">Dokumentasi GitHub</a></li>
+                <li><a href="https://docs.netlify.com/" target="_blank" class="text-blue-600 hover:underline">Dokumentasi Netlify</a></li>
+            </ul>
+
+            <h3 class="text-xl font-semibold text-gray-800 mt-6 mb-3">Kontak Pengembang:</h3>
+            <p class="text-gray-700 mb-2">Jika Anda memiliki pertanyaan spesifik tentang aplikasi ini atau ingin memberikan masukan, jangan ragu untuk menghubungi kami:</p>
+            <p class="text-gray-700"><strong>Email:</strong> <a href="mailto:cademyta@gmail.com" class="text-blue-600 hover:underline">cademyta@gmail.com</a></p>
+            <p class="text-gray-700"><strong>WhatsApp:</strong> <a href="https://wa.me/6285141379735" target="_blank" class="text-blue-600 hover:underline">0851-4137-9735</a></p>
+
+            <button id="backToGeneratorBtnSupport" class="btn-primary mt-8">Kembali ke Generator</button>
+        </div>
+    </div>
+
+    <div id="messageBox" class="message-box"></div>
+
+    <!-- Scroll Buttons -->
+    <button id="scrollToTopBtn" class="scroll-button">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-up"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+    </button>
+    <button id="scrollToBottomBtn" class="scroll-button">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+    </button>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const generatorSection = document.getElementById('generatorSection');
+            const tutorialSection = document.getElementById('tutorialSection');
+            const aboutSection = document.getElementById('aboutSection');
+            const supportSection = document.getElementById('supportSection'); // Get the new support section
+            const generateBtn = document.getElementById('generateBtn');
+            const outputSection = document.getElementById('outputSection');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const messageBox = document.getElementById('messageBox');
+
+            // Menu links
+            const aboutLink = document.getElementById('aboutLink');
+            const tutorialLink = document.getElementById('tutorialLink');
+            const supportLink = document.getElementById('supportLink');
+            const backToGeneratorBtnTutorial = document.getElementById('backToGeneratorBtnTutorial');
+            const backToGeneratorBtnAbout = document.getElementById('backToGeneratorBtnAbout');
+            const backToGeneratorBtnSupport = document.getElementById('backToGeneratorBtnSupport'); // New button for support section
+
+            // Scroll buttons
+            const scrollToTopBtn = document.getElementById('scrollToTopBtn');
+            const scrollToBottomBtn = document.getElementById('scrollToBottomBtn');
+
+            // Define options for Tone & Mood and Visual Style
+            const toneMoodOptions = [
+                'Epic', 'Intense', 'Mysterious', 'Dark', 'Uplifting', 'Romantic',
+                'Whimsical', 'Heroic', 'Melancholic', 'Energetic', 'Chill', 'Suspenseful'
+            ];
+
+            const visualStyleOptions = [
+                'Ultra-Cinematic', 'Handheld Documentary', 'Neon Cyberpunk', 'Dark Gothic',
+                'Bright Fantasy', 'Minimalist Clean', 'Vlog Selfie', 'Retro Vintage',
+                'High Contrast Noir', 'Realistic Photoreal', 'Animated Stylized',
+                'Dreamy Soft Focus', 'Slow-motion Battle Scenes', 'Dramatic Lighting'
+            ];
+
+            const spokenLanguageOptions = [
+                'English', 'Indonesian', 'Korean', 'Japanese', 'Mandarin', 'French',
+                'Spanish', 'German', 'Hindi', 'Arabic', 'Russian', 'Italian', 'Portuguese'
+            ];
+
+            // Function to add a selected option to the input field
+            function addOptionToInput(inputElement, value) {
+                let currentValues = inputElement.value.split(',').map(v => v.trim()).filter(v => v !== '');
+                if (!currentValues.includes(value)) {
+                    currentValues.push(value);
+                    inputElement.value = currentValues.join(', ');
+                }
+            }
+
+            // Function to render clickable options
+            function renderOptions(containerId, inputId, optionsArray) {
+                const container = document.getElementById(containerId);
+                const inputElement = document.getElementById(inputId);
+                container.innerHTML = ''; // Clear existing options
+
+                optionsArray.forEach(optionText => {
+                    const span = document.createElement('span');
+                    span.textContent = optionText;
+                    span.className = 'option-tag'; // Use the custom class for styling
+                    span.addEventListener('click', () => addOptionToInput(inputElement, optionText));
+                    container.appendChild(span);
+                });
+            }
+
+            // Render options on page load
+            renderOptions('toneMoodOptions', 'toneMood', toneMoodOptions);
+            renderOptions('visualStyleOptions', 'visualStyle', visualStyleOptions);
+            renderOptions('spokenLanguageOptions', 'spokenLanguage', spokenLanguageOptions); // Render for spoken language
+
+            // Event listener for generate button
+            generateBtn.addEventListener('click', generateTrailerPrompts);
+
+            // Event listeners for clear buttons
+            document.querySelectorAll('.clear-button').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const targetId = event.target.dataset.target;
+                    document.getElementById(targetId).value = '';
+                });
+            });
+
+            // Tab switching logic
+            function attachTabAndCopyListeners() {
+                document.querySelectorAll('.tab-button').forEach(button => {
+                    button.removeEventListener('click', handleTabClick); // Prevent duplicate listeners
+                    button.addEventListener('click', handleTabClick);
+                });
+
+                document.querySelectorAll('.copy-button').forEach(button => {
+                    button.removeEventListener('click', handleCopyClick); // Prevent duplicate listeners
+                    button.addEventListener('click', handleCopyClick);
+                });
+            }
+
+            function handleTabClick(event) {
+                const sceneNum = event.target.dataset.scene;
+                const lang = event.target.dataset.lang;
+
+                document.querySelectorAll(`.tab-button[data-scene="${sceneNum}"]`).forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.querySelectorAll(`.lang-content.scene-${sceneNum}-id, .lang-content.scene-${sceneNum}-en`).forEach(content => {
+                    content.classList.add('hidden');
+                });
+
+                event.target.classList.add('active');
+                document.querySelector(`.lang-content.scene-${sceneNum}-${lang}`).classList.remove('hidden');
+            }
+
+            function handleCopyClick(event) {
+                const sceneNum = event.target.dataset.scene;
+                const isEnglish = event.target.classList.contains('copy-en');
+                const targetSelector = isEnglish ? `.scene-${sceneNum}-en .prompt-text-en` : `.scene-${sceneNum}-id .prompt-text-id`;
+                const textToCopy = document.querySelector(targetSelector).textContent;
+
+                // Use a temporary textarea for copying to clipboard for better compatibility
+                const tempTextArea = document.createElement('textarea');
+                tempTextArea.value = textToCopy;
+                document.body.appendChild(tempTextArea);
+                tempTextArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempTextArea);
+
+                showMessage('Prompt berhasil disalin!');
+            }
+
+
+            async function callGeminiAPI(promptContent, schema) {
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: promptContent }] });
+                const payload = {
+                    contents: chatHistory,
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: schema
+                    }
+                };
+                const apiKey = ""; // If you want to use models other than gemini-2.0-flash or imagen-3.0-generate-002, provide an API key here. Otherwise, leave this as-is.
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await response.json();
+
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const json = result.candidates[0].content.parts[0].text;
+                        return JSON.parse(json);
+                    } else {
+                        console.error("Unexpected API response structure:", result);
+                        showMessage("Gagal mendapatkan respons dari AI. Coba lagi.", true);
+                        return null;
+                    }
+                } catch (error) {
+                    console.error("Error calling Gemini API:", error);
+                    showMessage("Terjadi kesalahan saat menghubungi AI. Periksa koneksi Anda.", true);
+                    return null;
+                }
+            }
+
+            async function generateTrailerPrompts() {
+                outputSection.classList.remove('hidden');
+                loadingIndicator.classList.remove('hidden');
+                document.getElementById('scenesContainer').innerHTML = ''; // Clear previous outputs
+
+                const judulFilm = document.getElementById('judulFilm').value || 'Film Fantasi Epik';
+                const genre = document.getElementById('genre').value || 'Fantasi';
+                const durasiTrailer = document.getElementById('durasiTrailer').value || '60';
+                const deskripsiKarakterUtama = document.getElementById('deskripsiKarakterUtama').value || 'Seorang pahlawan muda yang ragu-ragu menemukan kekuatan batinnya untuk menghadapi takdir.';
+                const toneMood = document.getElementById('toneMood').value || 'Epic, Intense, Heroic';
+                const lokasiSetting = document.getElementById('lokasiSetting').value || 'Hutan kuno, pegunungan terjal, reruntuhan kuno';
+                const visualStyle = document.getElementById('visualStyle').value || 'Ultra-Cinematic, Dramatic Lighting';
+                const spokenLanguage = document.getElementById('spokenLanguage').value || 'Indonesian'; // Get value from the new input
+                const musikSoundtrackMood = document.getElementById('musikSoundtrackMood').value || 'Orkestra dramatis, melodi yang mengharukan';
+                const narasiVoiceOverUtama = document.getElementById('narasiVoiceOverUtama').value || 'Di dunia yang dilupakan, satu jiwa akan bangkit.';
+                const petunjukTambahan = document.getElementById('petunjukTambahan').value || 'Fokus pada konflik internal karakter, tunjukkan sekilas adegan aksi besar.';
+
+                const sceneDescriptions = [
+                    {
+                        titleID: "Adegan 1: Video Opening + Subtitle (5 detik)",
+                        titleEN: "Scene 1: Video Opening + Subtitle (5 seconds)",
+                        basePrompt: `Buat prompt video Veo 3 untuk adegan pembuka trailer film.
+                        Fokus pada: Logo studio/produksi, judul film '${judulFilm}' muncul perlahan dengan tipografi yang kuat.
+                        Sertakan subtitle: '${narasiVoiceOverUtama}'.
+                        Tone: ${toneMood}. Visual Style: ${visualStyle}.
+                        Hasilkan dialog yang singkat dan backsound yang membangun suasana.
+                        `
+                    },
+                    {
+                        titleID: "Adegan 2: (8 detik)",
+                        titleEN: "Scene 2: (8 seconds)",
+                        basePrompt: `Buat prompt video Veo 3 untuk adegan kedua trailer film.
+                        Fokus pada: Perkenalkan karakter utama (${deskripsiKarakterUtama}) dalam lingkungan awal mereka (${lokasiSetting}). Tunjukkan sekilas kehidupan normal atau awal konflik.
+                        Aksi/Emosi: Ekspresi awal kebingungan/ketidaknyamanan.
+                        Tone: ${toneMood}. Visual Style: ${visualStyle}.
+                        Hasilkan dialog yang relevan dengan perkenalan dan backsound yang misterius.
+                        `
+                    },
+                    {
+                        titleID: "Adegan 3: (8 detik)",
+                        titleEN: "Scene 3: (8 seconds)",
+                        basePrompt: `Buat prompt video Veo 3 untuk adegan ketiga trailer film.
+                        Fokus pada: Peningkatan konflik atau tantangan pertama. Tunjukkan adegan yang memicu petualangan atau perubahan besar. Mungkin ada kilasan karakter pendukung.
+                        Aksi/Emosi: Ketegangan meningkat, keputusan penting.
+                        Tone: ${toneMood}. Visual Style: ${visualStyle}.
+                        Hasilkan dialog yang menunjukkan ketegangan dan backsound yang lebih intens.
+                        `
+                    },
+                    {
+                        titleID: "Adegan 4: (8 detik)",
+                        titleEN: "Scene 4: (8 seconds)",
+                        basePrompt: `Buat prompt video Veo 3 untuk adegan keempat trailer film.
+                        Fokus pada: Adegan aksi atau momen kunci yang menunjukkan kekuatan atau kelemahan karakter. Tampilkan visual yang paling menarik dari film.
+                        Aksi/Emosi: Puncak emosi, pertarungan, atau penemuan.
+                        Tone: ${toneMood}. Visual Style: ${visualStyle}.
+                        Hasilkan dialog yang dramatis dan backsound yang penuh semangat/heroik.
+                        `
+                    },
+                    {
+                        titleID: "Adegan 5: (8 detik)",
+                        titleEN: "Scene 5: (8 seconds)",
+                        basePrompt: `Buat prompt video Veo 3 untuk adegan kelima trailer film.
+                        Fokus pada: Kilasan cepat dari berbagai adegan klimaks, tantangan yang berbeda, atau momen emosional yang kuat. Ciptakan rasa urgensi dan skala besar.
+                        Aksi/Emosi: Montase cepat, harapan dan keputusasaan.
+                        Tone: ${toneMood}. Visual Style: ${visualStyle}.
+                        Hasilkan dialog singkat yang kuat dan backsound yang membangun menuju crescendo.
+                        `
+                    },
+                    {
+                        titleID: "Adegan 6: Video Closing Credit",
+                        titleEN: "Scene 6: Video Closing Credit",
+                        basePrompt: `Buat prompt video Veo 3 untuk adegan penutup trailer film.
+                        Fokus pada: Layar menjadi gelap, diikuti oleh kilasan terakhir yang kuat atau kutipan penting. Logo studio/distributor muncul.
+                        Teks: 'Segera Hadir' atau 'Tayang [Tanggal Rilis]'.
+                        Musik: Berakhir dengan nada yang kuat atau pertanyaan yang menggantung.
+                        Tone: ${toneMood}. Visual Style: ${visualStyle}.
+                        Hasilkan dialog penutup yang berkesan dan backsound yang klimaks.
+                        `
+                    }
+                ];
+
+                const sceneSchema = {
+                    type: "OBJECT",
+                    properties: {
+                        "video_prompt_id": { "type": "STRING" },
+                        "dialogue_id": { "type": "STRING" },
+                        "backsound_id": { "type": "STRING" },
+                        "video_prompt_en": { "type": "STRING" },
+                        "dialogue_en": { "type": "STRING" },
+                        "backsound_en": { "type": "STRING" }
+                    },
+                    required: ["video_prompt_id", "dialogue_id", "backsound_id", "video_prompt_en", "dialogue_en", "backsound_en"]
+                };
+
+                for (let i = 0; i < sceneDescriptions.length; i++) {
+                    const scene = sceneDescriptions[i];
+                    const fullPrompt = `Film Title: ${judulFilm}, Genre: ${genre}, Character: ${deskripsiKarakterUtama}, Tone/Mood: ${toneMood}, Location: ${lokasiSetting}, Visual Style: ${visualStyle}, Spoken Language: ${spokenLanguage}, Music Mood: ${musikSoundtrackMood}, Voice Over: ${narasiVoiceOverUtama}, Additional Notes: ${petunjukTambahan}.
+
+                    Based on the above film details, generate a detailed Veo 3 compatible video prompt, relevant dialogue, and a suitable backsound description for the following trailer scene. Provide both Indonesian and English versions.
+
+                    Scene Description: ${scene.basePrompt}
+
+                    Ensure the output is in JSON format as follows:
+                    {
+                        "video_prompt_id": "[Veo 3 prompt dalam Bahasa Indonesia]",
+                        "dialogue_id": "[Dialog dalam Bahasa Indonesia]",
+                        "backsound_id": "[Deskripsi backsound dalam Bahasa Indonesia]",
+                        "video_prompt_en": "[Veo 3 prompt in English]",
+                        "dialogue_en": "[Dialogue in English]",
+                        "backsound_en": "[Backsound description in English]"
+                    }`;
+
+                    const result = await callGeminiAPI(fullPrompt, sceneSchema);
+
+                    if (result) {
+                        const sceneBlockHtml = `
+                            <div class="scene-block">
+                                <h3 class="text-lg font-semibold text-gray-800 mb-3">${scene.titleID}</h3>
+                                <div class="lang-tabs flex mb-3">
+                                    <button class="tab-button active" data-lang="id" data-scene="${i + 1}">Indonesia</button>
+                                    <button class="tab-button" data-lang="en" data-scene="${i + 1}">English</button>
+                                </div>
+                                <div class="lang-content id-content scene-${i + 1}-id">
+                                    <pre class="prompt-text-id text-sm">
+Veo 3 Prompt: ${result.video_prompt_id}
+
+Dialog: ${result.dialogue_id}
+
+Backsound: ${result.backsound_id}</pre>
+                                    <button class="copy-button copy-id" data-scene="${i + 1}">Salin Prompt Indonesia</button>
+                                </div>
+                                <div class="lang-content en-content scene-${i + 1}-en hidden">
+                                    <pre class="prompt-text-en text-sm">
+Veo 3 Prompt: ${result.video_prompt_en}
+
+Dialogue: ${result.dialogue_en}
+
+Backsound: ${result.backsound_en}</pre>
+                                    <button class="copy-button copy-en" data-scene="${i + 1}">Salin Prompt English</button>
+                                </div>
+                            </div>
+                        `;
+                        document.getElementById('scenesContainer').insertAdjacentHTML('beforeend', sceneBlockHtml);
+                    } else {
+                        // Handle error for this specific scene
+                        const errorHtml = `
+                            <div class="scene-block">
+                                <h3 class="text-lg font-semibold text-gray-800 mb-3">${scene.titleID}</h3>
+                                <p class="text-red-500">Gagal menghasilkan prompt untuk adegan ini. Silakan coba lagi.</p>
+                            </div>
+                        `;
+                        document.getElementById('scenesContainer').insertAdjacentHTML('beforeend', errorHtml);
+                    }
+                }
+
+                loadingIndicator.classList.add('hidden');
+                attachTabAndCopyListeners(); // Re-attach listeners after new content is added
+            }
+
+            function showMessage(message, isError = false) {
+                messageBox.textContent = message;
+                messageBox.style.backgroundColor = isError ? '#f44336' : '#4CAF50';
+                messageBox.classList.add('show');
+                setTimeout(() => {
+                    messageBox.classList.remove('show');
+                }, 3000);
+            }
+
+            // Scroll button functionality
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 200) { // Show buttons after scrolling down 200px
+                    scrollToTopBtn.classList.add('show');
+                    scrollToBottomBtn.classList.add('show');
+                } else {
+                    scrollToTopBtn.classList.remove('show');
+                    scrollToBottomBtn.classList.remove('show');
+                }
+            });
+
+            scrollToTopBtn.addEventListener('click', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+
+            scrollToBottomBtn.addEventListener('click', () => {
+                window.scrollTo({
+                    top: document.body.scrollHeight,
+                    behavior: 'smooth'
+                });
+            });
+
+            // Function to hide all sections and then show the target section
+            function showSection(sectionToShow) {
+                generatorSection.classList.add('hidden');
+                tutorialSection.classList.add('hidden');
+                aboutSection.classList.add('hidden');
+                supportSection.classList.add('hidden'); // Hide support section too
+                sectionToShow.classList.remove('hidden');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            // Handle About, Tutorial, Support links
+            aboutLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                showSection(aboutSection);
+            });
+
+            tutorialLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                showSection(tutorialSection);
+            });
+
+            supportLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                showSection(supportSection); // Show support section
+            });
+
+            // Back to Generator buttons
+            backToGeneratorBtnTutorial.addEventListener('click', (e) => {
+                e.preventDefault();
+                showSection(generatorSection);
+            });
+
+            backToGeneratorBtnAbout.addEventListener('click', (e) => {
+                e.preventDefault();
+                showSection(generatorSection);
+            });
+
+            backToGeneratorBtnSupport.addEventListener('click', (e) => { // New back button for support
+                e.preventDefault();
+                showSection(generatorSection);
+            });
+        });
+    </script>
+</body>
+</html>
